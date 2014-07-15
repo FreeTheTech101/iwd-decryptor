@@ -338,7 +338,7 @@ void RunTool()
 		searchpath_s* tempPath = fs_searchpaths;
 		while(tempPath && tempPath->pack)
 		{
-			if(FS_IsFileEncrypted(tempPath->pack->pakBasename))
+			if(tempPath->pack->pakBasename && !IsBadReadPtr(tempPath->pack->pakBasename, 1) && FS_IsFileEncrypted(tempPath->pack->pakBasename))
 			{
 				unpackIWD_do(va("%s.iwd", tempPath->pack->pakBasename));
 			}
