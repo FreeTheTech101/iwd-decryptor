@@ -6,7 +6,7 @@ Put the IWD Dump.exe and the compiled IWD Dump.dll into your Modern Warfare 2 di
 enter the iwds to decrypt (must have them in main) and it will output the files into the raw directory.  
 
 Thanks to:
-- NTAuthorty  
+- NTAuthority  
 - TheApadayo  
 
 This tool was written as part of the React project (https://react.kthx.at/)  
