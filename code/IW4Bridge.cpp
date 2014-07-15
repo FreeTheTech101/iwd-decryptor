@@ -312,7 +312,7 @@ void test()
 	fclose(fp);
 }
 
-void* __stdcall exceptionFilerHook(DWORD filter)
+void* __stdcall exceptionFilterHook(DWORD filter)
 {
 	return SetUnhandledExceptionFilter(&CustomUnhandledExceptionFilter);
 }
@@ -425,8 +425,8 @@ void InitBridge()
 	memset((void*)0x450063, 0x90, 5);
 
 	// exceptions
-	exceptionFilerHook(0);
-	*(DWORD*)0x6D70AC = (DWORD)exceptionFilerHook;
+	exceptionFilterHook(0);
+	*(DWORD*)0x6D70AC = (DWORD)exceptionFilterHook;
 
 	addEntryNameHook.initialize(addEntryNameHookLoc, AddEntryNameHookStub);
 	addEntryNameHook.installHook();
