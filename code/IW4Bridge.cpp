@@ -229,6 +229,19 @@ void unpackIWD_do(const char* iwdname)
 	}
 }
 
+bool isValidBuffer(char* buffer)
+{
+	for(int i = 0;i<strlen(buffer);i++)
+	{
+		if(buffer[i] != ' ')
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
 HANDLE hstdout;
 void printDone();
 
@@ -242,6 +255,11 @@ void RunTool()
 
 	char buffer[512];
 	gets(buffer);
+
+	if(!isValidBuffer(buffer))
+	{
+		ExitProcess(0);
+	}
 
 	auto files = explode(buffer, " ");
 
