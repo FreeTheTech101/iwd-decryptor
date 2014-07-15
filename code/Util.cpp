@@ -26,6 +26,8 @@ void Com_Debug_(const char* format, ...)
 	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 7);
 }
 
+void printDone();
+
 void Com_Error(bool exit, const char* format, ...)
 {
 	static char buffer[32768];
@@ -40,7 +42,9 @@ void Com_Error(bool exit, const char* format, ...)
 	//if(IsDebuggerPresent())
 		//DebugBreak();
 	if(exit)
-		TerminateProcess(GetCurrentProcess(), -1);
+	{
+		printDone();
+	}
 }
 
 const char* assetTypeStrings [] = {
