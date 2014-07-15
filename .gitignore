@@ -199,6 +199,7 @@ $RECYCLE.BIN/
 us.stackdump
 
 Debug/
+Normal/
 
 clientdll/Release/
 clientdll/Normal/*
