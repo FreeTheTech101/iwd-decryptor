@@ -221,7 +221,7 @@ void unpackIWD_do(const char* iwdname)
 
 	while(tempPath && tempPath->pack)
 	{
-		if(!strcmp(va("%s.iwd", tempPath->pack->pakBasename), iwdFile))
+		if(tempPath->pack->pakBasename && !IsBadReadPtr(tempPath->pack->pakBasename, 1) && !strcmp(va("%s.iwd", tempPath->pack->pakBasename), iwdFile))
 		{
 			iwdHandle = tempPath->pack;
 			printf("Archive found!\n");
