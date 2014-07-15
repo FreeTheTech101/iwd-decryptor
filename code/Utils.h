@@ -16,6 +16,16 @@ bool FileExists(const char* file);
 size_t FileSize(const char* file);
 char * FileDir(const char * path);
 
+#define MERGED_DIR "dump"
+
+// flag settings
+#define GAME_FLAG_MERGE		(1 << 0)
+
+#define GAME_FLAG(x)			((_gameFlags & x) == x)
+
+extern unsigned int _gameFlags;
+void DetermineGameFlags();
+
 const char* va(const char* format, ...);
 const char *getOutFile(const char *name);
 void CreateDirectoryAnyDepth(const char *path);

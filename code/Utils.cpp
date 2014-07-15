@@ -149,3 +149,56 @@ std::vector<std::string> explode(const std::string& str, const std::string& deli
 
 	return tokens;
 }
+
+// determine which patchset to use
+unsigned int _gameFlags;
+
+typedef struct  
+{
+	const wchar_t* argument;
+	unsigned int flag;
+} flagDef_t;
+
+flagDef_t flags[] =
+{
+	{ L"merge", GAME_FLAG_MERGE },
+	{ 0, 0 }
+};
+
+bool hasLicenseKey = false;
+char licenseKey[48];
+
+const char* GetLicenseKey()
+{
+	return (hasLicenseKey) ? &licenseKey[1] : NULL;
+}
+
+void DetermineGameFlags()
+{
+	int numArgs;
+	LPCWSTR commandLine = GetCommandLineW();
+	LPWSTR* argv = CommandLineToArgvW(commandLine, &numArgs);
+
+	for (int i = 0; i < numArgs; i++)
+	{
+		if (argv[i][0] != L'-') continue;
+
+		for (wchar_t* c = argv[i]; *c != L'\0'; c++)
+		{
+			if (*c != L'-')
+			{
+				for (flagDef_t* flag = flags; flag->argument; flag++)
+				{
+					if (!wcscmp(c, flag->argument))
+					{
+						_gameFlags |= flag->flag;
+						break;
+					}
+				}
+				break;
+			}
+		}
+	}
+
+	LocalFree(argv);
+}

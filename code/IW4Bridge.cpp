@@ -130,7 +130,7 @@ void dumpCryptoFile(char* name, const char* path)
 
 	char filename[512];
 	char dir[512];
-	sprintf(filename, "%s/%s/%s", "raw", path, name);
+	sprintf(filename, "%s/%s/%s", "raw", (GAME_FLAG(GAME_FLAG_MERGE) ? MERGED_DIR : path), name);
 
 	GetCurrentDirectoryA(sizeof(dir), dir);
 	strcat(dir, "/");
@@ -221,7 +221,7 @@ void unpackIWD_do(const char* iwdname)
 			dumpCryptoFile(files[i].name, iwdFile);
 		}
 
-		printf("Extracting: 100%% -> %s/%s\n", "raw", iwdFile);
+		printf("Extracting: 100%% -> %s/%s\n", "raw", (GAME_FLAG(GAME_FLAG_MERGE) ? MERGED_DIR : iwdFile));
 	}
 	else
 	{
@@ -306,10 +306,13 @@ void printTitle(byte color)
 	printf("                                                                                 \n");  SetConsoleTextAttribute( hstdout, 0x07 );
 }
 
+void DetermineGameFlags();
+
 void InitBridge()
 {
 	hstdout = GetStdHandle( STD_OUTPUT_HANDLE );
 	SetConsoleTitle("IWD Decryptor");
+	DetermineGameFlags();
 	printTitle(11);
 
 	// check version
