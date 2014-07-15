@@ -147,42 +147,53 @@ void dumpCryptoFile(char* name, const char* path)
 	SHCreateDirectoryExA(NULL, dir, NULL);
 
 	BYTE* buffer;
-	size_t size = FS_ReadFile(name, (void**)&buffer);
+	int fh;
+	size_t size = FS_FOpenFileRead(name, &fh, false);//FS_ReadFile(name, (void**)&buffer);
 
-	if(!size)
+	if(!fh || !size)
 		return;
+
+	buffer = (BYTE*)malloc(size);
+	memset(buffer, 0, size);
+
+	FS_Read(buffer, size, fh);
+	FS_FCloseFile(fh);
 
 	FILE* fp = fopen(filename, "wb");
 	fwrite(buffer, sizeof(BYTE), size, fp);
 	fclose(fp);
-	FS_FreeFile(buffer);
+	//FS_FreeFile(buffer);
+	free(buffer);
 }
 
 dvar_t** fs_basepath = (dvar_t**)0x63D0CD4;
 
 int FS_IsFileEncrypted(const char* filename);
 
+char iwdFile[MAX_PATH];
+
 void unpackIWD_do(const char* iwdname)
 {
-	if(!FS_IsFileEncrypted(iwdname))
+	strncpy(iwdFile, iwdname, sizeof(iwdFile));
+	if(!FS_IsFileEncrypted(iwdFile))
 	{
-		printf("Given archive is not encrypted!");
+		printf("Given archive is not encrypted!\n");
 		return;
 	}
 
 	char path[MAX_PATH];
 
-	strncpy(path, va("%s\\%s\\%s", (*fs_basepath)->current.string, "main", iwdname), MAX_PATH);
+	strncpy(path, va("%s\\%s\\%s", (*fs_basepath)->current.string, "main", iwdFile), MAX_PATH);
 
 	pack_t* iwdHandle;
 
-	printf("\nSearching archive '%s'...\n", iwdname);
+	printf("\nSearching archive '%s'...\n", iwdFile);
 
 	searchpath_s* tempPath = fs_searchpaths;
 
 	while(tempPath && tempPath->pack)
 	{
-		if(!strcmp(va("%s.iwd", tempPath->pack->pakBasename), iwdname))
+		if(!strcmp(va("%s.iwd", tempPath->pack->pakBasename), iwdFile))
 		{
 			iwdHandle = tempPath->pack;
 			printf("Archive found!\n");
@@ -195,7 +206,7 @@ void unpackIWD_do(const char* iwdname)
 	if(!iwdHandle)
 	{
 		printf("Archive not found. Forcing it to load...\n");
-		iwdHandle = FS_LoadZipFile(path, iwdname);
+		iwdHandle = FS_LoadZipFile(path, iwdFile);
 	}
 
 	if(iwdHandle && iwdHandle->numfiles)
@@ -207,10 +218,10 @@ void unpackIWD_do(const char* iwdname)
 			int percent = (100.0 / iwdHandle->numfiles) * i;
 			printf("Extracting: %d%%\r", percent);
 
-			dumpCryptoFile(files[i].name, iwdname);
+			dumpCryptoFile(files[i].name, iwdFile);
 		}
 
-		printf("Extracting: 100%% -> %s/%s\n", "raw", iwdname);
+		printf("Extracting: 100%% -> %s/%s\n", "raw", iwdFile);
 	}
 	else
 	{
@@ -226,7 +237,7 @@ void RunTool()
 	doInit();
 
 	SetConsoleTextAttribute( hstdout, 0x0A );
-	printf("\nEnter IWDs to decrypt (separated by spaces):\n");
+	printf("\nEnter IWDs to decrypt (separated by spaces or 'all'):\n");
 	SetConsoleTextAttribute( hstdout, 0x07 );
 
 	char buffer[512];
@@ -234,18 +245,28 @@ void RunTool()
 
 	auto files = explode(buffer, " ");
 
-	for(int i = 0; i < files.size(); i++)
+	if(!strcmp(files[0].c_str(), "all"))
 	{
-		unpackIWD_do(files[i].c_str());
+		searchpath_s* tempPath = fs_searchpaths;
+		while(tempPath && tempPath->pack)
+		{
+			if(FS_IsFileEncrypted(tempPath->pack->pakBasename))
+			{
+				unpackIWD_do(va("%s.iwd", tempPath->pack->pakBasename));
+			}
+
+			tempPath = tempPath->next;
+		}
+	}
+	else
+	{
+		for(int i = 0; i < files.size(); i++)
+		{
+			unpackIWD_do(files[i].c_str());
+		}
 	}
 
 	printDone();
-}
-
-void printUsage()
-{
-	printf("usage: ZoneBuilder.exe [zone name] -sSourceZones\n");
-	TerminateProcess(GetCurrentProcess(), 0);
 }
 
 void printDone()
@@ -272,7 +293,6 @@ void InitBridge()
 	hstdout = GetStdHandle( STD_OUTPUT_HANDLE );
 	SetConsoleTitle("IWD Decryptor");
 	printTitle(11);
-	//parseArgs();
 
 	// check version
 	if (strcmp((char*)0x6E9638, "177"))

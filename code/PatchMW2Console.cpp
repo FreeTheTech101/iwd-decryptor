@@ -54,7 +54,7 @@ void Sys_Error(const char* format, ...)
 	_vsnprintf(buffer, sizeof(buffer), format, va);
 	va_end(va);
 
-	//printf("ERROR: %s\n", buffer);
+	printf("ERROR: %s\n", buffer);
 }
 
 const char* Sys_ConsoleInput()
