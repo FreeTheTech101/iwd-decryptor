@@ -34,9 +34,16 @@ bool dumping = false;
 bool verify = false;
 bool useEntryNames = false;
 
+void* malloc_n(size_t size)
+{
+	void* memPtr = malloc(size);
+	memset(memPtr, 0, size);
+	return memPtr;
+}
+
 void ZoneBuild(char* toBuild);
 
-list<string> sources;
+vector<string> sources;
 string zoneToBuild;
 string toDump;
 int dumpType;
@@ -166,6 +173,27 @@ void dumpCryptoFile(char* name, const char* path)
 	free(buffer);
 }
 
+void AddEntryNameHookFunc(int type, const char* name)
+{
+	OutputDebugString(va("%d: %s\n", type, name));
+}
+
+CallHook addEntryNameHook;
+DWORD addEntryNameHookLoc = 0x5BB697;
+
+void __declspec(naked) AddEntryNameHookStub()
+{
+	__asm
+	{
+		push ecx
+		push eax
+		call AddEntryNameHookFunc
+		pop eax
+		pop ecx
+		jmp addEntryNameHook.pOriginal
+	}
+}
+
 dvar_t** fs_basepath = (dvar_t**)0x63D0CD4;
 
 int FS_IsFileEncrypted(const char* filename);
@@ -245,9 +273,49 @@ bool isValidBuffer(char* buffer)
 HANDLE hstdout;
 void printDone();
 
+void loadFastFiles()
+{
+	sources.clear(); // We never know ;)
+	sources.push_back("code_pre_gfx_mp");
+	sources.push_back("localized_code_pre_gfx_mp");
+	sources.push_back("code_post_gfx_mp");
+	sources.push_back("localized_code_post_gfx_mp");
+	sources.push_back("common_mp");
+	sources.push_back("mp_cargoship_sh");
+
+	XZoneInfo* info = (XZoneInfo*)malloc_n(sizeof(XZoneInfo) * sources.size());
+
+	for(int i = 0; i < sources.size(); i++)
+	{
+		info[i].name = sources[i].c_str();
+		info[i].type1 = 3;
+		info[i].type2 = 0;
+	}
+
+	DB_LoadXAssets(info, sources.size(), 0);
+}
+
+void ForEachAsset(void* asset, int f)
+{
+	fprintf((FILE*)f, "%s\n", *(char**)asset);
+}
+
+typedef void (__cdecl * DB_EnumXAssets_t)(assetType_t type, void (*handler)(void*, int), int userData);
+static DB_EnumXAssets_t DB_EnumXAssets = (DB_EnumXAssets_t)0x42A770;
+
+void test()
+{
+	FILE* fp = fopen("dump.txt", "w");
+	DB_EnumXAssets(ASSET_TYPE_COL_MAP_MP, ForEachAsset, (int)fp);
+	DB_EnumXAssets(ASSET_TYPE_COM_MAP, ForEachAsset, (int)fp);
+	DB_EnumXAssets(ASSET_TYPE_GAME_MAP_MP, ForEachAsset, (int)fp);
+	fclose(fp);
+}
+
 void RunTool()
 {
 	doInit();
+	//loadFastFiles();
 
 	SetConsoleTextAttribute( hstdout, 0x0A );
 	printf("\nEnter IWDs to decrypt (separated by spaces or 'all'):\n");
@@ -258,6 +326,8 @@ void RunTool()
 
 	if(!isValidBuffer(buffer))
 	{
+		//test();
+		//printDone();
 		ExitProcess(0);
 	}
 
@@ -307,6 +377,7 @@ void printTitle(byte color)
 }
 
 void DetermineGameFlags();
+void PatchMW2_FifthInfinity();
 
 void InitBridge()
 {
@@ -324,6 +395,7 @@ void InitBridge()
 
 	PatchMW2_Console(); // redirect output
 	PatchMW2_CryptoFiles(); // let us pull from iw4c fastfiles
+	PatchMW2_FifthInfinity();
 
 	// add our entry point
 	call(0x6BABA1, RunTool, PATCH_CALL);
@@ -350,11 +422,8 @@ void InitBridge()
 	// exceptions
 	SetUnhandledExceptionFilter(&CustomUnhandledExceptionFilter);
 
-// 	// Causes chrashes somewhere in FS_Startup
-// 	nop(0x482542, 5);
-// 
-// 	// Ignore fileSysCheck whatever
-// 	*(BYTE*)0x4290DF = 0xEB;
+	addEntryNameHook.initialize(addEntryNameHookLoc, AddEntryNameHookStub);
+	addEntryNameHook.installHook();
 
 	// allow loading of IWffu (unsigned) files
 	*(BYTE*)0x4158D9 = 0xEB; // main function
@@ -363,7 +432,7 @@ void InitBridge()
 	// NTA patches
 	*(DWORD*)0x1CDE7FC = GetCurrentThreadId(); // patch main thread ID
 	*(BYTE*)0x519DDF = 0; //r_loadForrenderer = 0 
-	*(BYTE*)0x4CF7F0 = 0xCC; // dirty disk breakpoint
+	*(BYTE*)0x4CF7F0 = 0xC3; // dirty disk breakpoint
 	*(BYTE*)0x51F450 = 0xC3; //r_delayloadimage retn
 	*(BYTE*)0x51F03D = 0xEB; // image release jmp
 

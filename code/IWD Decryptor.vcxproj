@@ -58,7 +58,7 @@
     </ClCompile>
     <Link>
       <AdditionalOptions>/ignore:4248 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>dbghelp.lib;tommath.lib;tomcrypt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>dbghelp.lib;tommath.lib;tomcrypt.lib;zlib.lib;zlib-MultiThread_Debug_DLL.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(TargetPath)</OutputFile>
       <AdditionalLibraryDirectories>$(SolutionDir)\dependencies\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -95,6 +95,9 @@
     <ClCompile Include="MW2.cpp" />
     <ClCompile Include="PatchMW2Console.cpp" />
     <ClCompile Include="PatchMW2CryptoFiles.cpp" />
+    <ClCompile Include="PatchMW2CryptoZone.cpp" />
+    <ClCompile Include="PatchMW2FifthInfinity.cpp" />
+    <ClCompile Include="PatchMW2FilePointers.cpp" />
     <ClCompile Include="StdInc.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Normal|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Normal|Win32'">StdInc.h</PrecompiledHeaderFile>
@@ -112,6 +115,7 @@
     <ClCompile Include="Utils.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AssetStructs.h" />
     <ClInclude Include="Hooking.h" />
     <ClInclude Include="MW2.h" />
     <ClInclude Include="StdInc.h" />

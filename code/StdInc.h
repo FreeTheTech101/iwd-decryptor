@@ -39,6 +39,8 @@
 #include <stdlib.h>
 #include <unordered_map>
 
+#include "AssetStructs.h"
+
 // OSW headers
 #define NO_STEAM // to reduce header amount needed
 #include "CCallback.h"

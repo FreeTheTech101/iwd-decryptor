@@ -331,10 +331,13 @@ continued:
 	}
 }
 
+void PatchMW2_CryptoZone();
 void PatchMW2_CryptoFilesStreamDebug();
 
 void PatchMW2_CryptoFiles()
 {
+	PatchMW2_CryptoZone();
+
 	tlsIWDKey = TlsAlloc();
 
 	ltc_mp = ltm_desc;
