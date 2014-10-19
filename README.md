@@ -2,8 +2,8 @@ IWD Decryptor
 ========
 
 Decrypt Activision's encrypted IWD archives.
-Put the IWD Dump.exe and the compiled IWD Dump.dll into your Modern Warfare 2 directory, launch the exe,  
-enter the iwds to decrypt (must have them in main) and it will output the files into the raw directory.  
+Put the compiled IWD Dump.dll into the runtime directory, launch the exe,  
+enter the iwds to decrypt (must have them in the codo directory) and it will output the files into the raw directory.  
 
 Thanks to:
 - NTAuthority  

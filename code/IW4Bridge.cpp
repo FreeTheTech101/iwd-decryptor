@@ -406,6 +406,9 @@ void InitBridge()
 	call(0x6BABA1, RunTool, PATCH_CALL);
 	//call(0x5BCA85, CheckZoneLoad, PATCH_CALL);
 
+	// fs_basegame
+	*(char**)0x6431D1 = "codo";
+
 	// fuck exceptions
 	memset((DWORD*)0x6114B1, 0x90, 10);
 
